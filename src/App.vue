@@ -5,76 +5,66 @@
         <v-row justify="center">
           <v-col xl="6" class="pt-8">
 
-          <template v-if="users.length === 0">
-            <app-users-load 
-              :URLs="datasetsURLs"
-              :headers="datasetsHeaders"
-              @load="setUsers"
-            />
-          </template>
-
-          <template v-else>
-
-            <v-expand-transition>
-              <app-add-user-form 
-                v-show="isShowAddUserForm"
-                @submit="submitAddUserForm"
-                @cancel="toggleAddUserForm"
+            <template v-if="users.length === 0">
+              <app-users-load 
+                :URLs="datasetsURLs"
+                :headers="datasetsHeaders"
+                @load="setUsers"
               />
-            </v-expand-transition>
+            </template>
 
-            <!-- topbar -->
-            <v-col class="px-0 d-flex align-center">
-              <v-btn
-                :disabled="isShowAddUserForm" 
-                @click="toggleAddUserForm"
-              >
-                Добавить
-              </v-btn>
-
-              <span
-                v-if="isShowSubmitLabel"
-                class="ml-4 success--text"
-              >
-                Пользователь успешно добавлен!
-              </span>
-
-              <v-spacer />
-
-              <v-col lg="6" class="pa-0">
-                <app-filter-bar 
-                  class="d-flex ml-auto"
-                  v-model.trim="filterText"
+            <template v-else>
+              <v-expand-transition>
+                <app-add-user-form 
+                  v-show="isShowAddUserForm"
+                  @submit="submitAddUserForm"
+                  @cancel="toggleAddUserForm"
                 />
+              </v-expand-transition>
+
+              <!-- topbar -->
+              <v-col class="px-0 d-flex align-center">
+                <v-btn
+                  :disabled="isShowAddUserForm" 
+                  @click="toggleAddUserForm"
+                >
+                  Добавить
+                </v-btn>
+
+                <span
+                  v-if="isShowSubmitLabel"
+                  class="ml-4 success--text"
+                >
+                  Пользователь успешно добавлен!
+                </span>
+
+                <v-spacer />
+
+                <v-col lg="6" class="pa-0">
+                  <app-filter-bar 
+                    class="d-flex ml-auto"
+                    v-model.trim="filterText"
+                  />
+                </v-col>
               </v-col>
-            </v-col>
 
-            <app-table
-              :page="page"
-              :dataPerPage="dataPerPage"
-              :headers="tableHeaders" 
-              :keys="tableKeys" 
-              :items="filteredTableItems"
-              @click="selectItem"
-              @reset="resetPage"
-            />
+              <app-pagination-table 
+                :headers="tableHeaders" 
+                :keys="tableKeys" 
+                :items="filteredTableItems"
+                :page="page"
+                :maxDataPerPage="50"
+                @click="selectItem"
+              />
 
-            <app-pagination
-              :page="page"
-              @change="changePage"
-              :length="paginationLength"
-              class="mt-8"
-            />
-
-            <app-user-card
-              v-if="selectedItem"
-              :firstName="selectedItem.firstName || ''"
-              :lastName="selectedItem.lastName || ''"
-              :description="selectedItem.description || ''"
-              :address="selectedItem.address || {}"
-              class="mt-8"
-            />
-
+              <app-user-card
+                v-if="selectedItem"
+                :firstName="selectedItem.firstName || ''"
+                :lastName="selectedItem.lastName || ''"
+                :description="selectedItem.description || ''"
+                :address="selectedItem.address || {}"
+                class="mt-8"
+              />
             </template>
 
           </v-col>
@@ -85,9 +75,8 @@
 </template>
 
 <script>
-import AppTable from '@/components/AppTable'
+import AppPaginationTable from '@/components/AppPaginationTable'
 import AppUserCard from '@/components/AppUserCard'
-import AppPagination from '@/components/AppPagination'
 import AppFilterBar from '@/components/AppFilterBar'
 import AppAddUserForm from '@/components/AppAddUserForm'
 import AppUsersLoad from '@/components/AppUsersLoad'
@@ -96,9 +85,8 @@ export default {
   name: 'App',
 
   components: {
-    AppTable,
+    AppPaginationTable,
     AppUserCard,
-    AppPagination,
     AppAddUserForm,
     AppFilterBar,
     AppUsersLoad,
@@ -106,29 +94,24 @@ export default {
 
   data: () => ({
     selectedItem: null,
-    
-    dataPerPage: 50,
-    page: 2,
-    
+    page: 1,
     filterText: '',
     
     isShowAddUserForm: false,
     isShowSubmitLabel: false,
     
+    users: [],
     datasetsURLs : [
-      // Малый набор данных
+      // small dataset
       'http://www.filltext.com/?rows=32&id={number|1000}&firstName={firstName}&lastName={lastName}&email={email}&phone={phone|(xxx)xxx-xx-xx}&address={addressObject}&description={lorem|32}',
 
-      // Большой набор данных
+      // big dataset
       'http://www.filltext.com/?rows=1000&id={number|1000}&firstName={firstName}&delay=3&lastName={lastName}&email={email}&phone={phone|(xxx)xxx-xx-xx}&address={addressObject}&description={lorem|32}',
     ],
-
     datasetsHeaders: [
       'Малый набор (32 пользователя)',
       'Большой набор (1000 пользователей)',
     ],
-
-    users: [],
 
     tableHeaders: [
       'Id',
@@ -147,9 +130,6 @@ export default {
   }),
 
   computed: {
-    paginationLength: function() {
-      return Math.ceil(this.filteredTableItems.length / this.dataPerPage)
-    },
     tableItems: function() {
       if (this.users.length === 0) return []
 
@@ -176,20 +156,13 @@ export default {
   watch: {
     filterText() {
       this.filterText = this.filterText.toLowerCase()
-      this.resetPage()
+      this.page = 1
     },
   },
 
   methods: {
     selectItem(id) {
       this.selectedItem = this.users.find(user => (user.id === id))
-    },
-
-    resetPage() {
-      this.page = 1
-    },
-    changePage(page) {
-      this.page = page
     },
 
     submitAddUserForm(user) {

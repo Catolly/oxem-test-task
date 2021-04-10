@@ -1,9 +1,17 @@
 <template>
 	<v-card class="pa-12">
-		<div class="d-flex justify-center">
-			<v-card-title class="pt-0 text-h4">
+		<div class="d-flex flex-column align-center">
+			<v-card-title 
+				class="pt-0 text-h4"
+			>
 				{{loading ? 'Загрузка...' : 'Загрузить набор данных'}}
 			</v-card-title>
+			<v-card-subtitle
+				v-if="error"
+				class="mt-0 pa-0 text-h5 error--text"
+			>
+				Не удалось загрузить данные
+			</v-card-subtitle>
 		</div>
 
 		<div 
@@ -38,6 +46,7 @@ export default {
 
 	data: () => ({
 		loading: false,
+		error: false,
 	}),
 
 	props: {
@@ -54,10 +63,17 @@ export default {
 	methods: {
 		async loadDataset(URL) {
 			this.loading = true
+			this.error = false
 			
-			await fetch(URL)
-			.then(res => res.json())
-			.then(dataset => this.$emit('load', dataset))
+			try {
+				await fetch(URL)
+				.then(res => res.json())
+				.then(dataset => this.$emit('load', dataset))
+			} catch(err) {
+				
+				this.error = true
+				console.error(err)
+			}
 
 			this.loading = false
 		},

@@ -203,10 +203,12 @@ export default {
 		currentPage() {
 			this.$emit('change', this.currentPage)
     },
-
     page() {
 			this.currentPage = this.page
     },
+    length() {
+			this.currentPage = 1
+    }
   },
 }
 </script>

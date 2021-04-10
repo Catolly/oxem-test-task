@@ -1,5 +1,8 @@
 <template>
-	<form @submit.prevent="submit">
+	<form 
+		@submit.prevent="submit"
+		@keyup.enter="submit"
+	>
 		<v-card
 			class="pa-4 py-2"
 			transition="dialog-top-transition"
@@ -9,7 +12,8 @@
 
 				<v-text-field
 					label="id"
-					v-model.number="form.id.value"
+					type="number"
+					v-model.trim.number="form.id.value"
 					:error-messages="idErrors"
 					@change="touch(form.id)"
 					required
@@ -33,6 +37,7 @@
 				
 				<v-text-field
 					label="email"
+					type="email"
 					v-model.trim="form.email.value"
 					:error-messages="emailErrors"
 					@change="touch(form.email)"
