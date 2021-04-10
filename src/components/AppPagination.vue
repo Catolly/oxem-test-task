@@ -1,9 +1,9 @@
 <template>
 	<div>
-		<!-- previous page btn -->
+		<!-- previous pageNumber btn -->
 		<v-btn 
 			class="mr-1"
-			:disabled="currentPage === 1"
+			:disabled="page === 1"
 			@click="prevPage()"
 		>
 			<v-icon>
@@ -20,7 +20,7 @@
 				<v-btn
 					v-if="isLeftBtnActive(btnNumber)"
 					class="mx-1"
-					:class="{'primary': btnNumber === currentPage}"
+					:class="{'primary': btnNumber === page}"
 					@click="select(btnNumber)"
 				>
 					{{btnNumber}}
@@ -29,7 +29,7 @@
 
 			<!-- left divider -->
 			<span
-				v-if="!isInLeftSide(currentPage)"
+				v-if="!isInLeftSide(page)"
 				class="mx-1 px-2"			
 			>
 				...
@@ -37,14 +37,14 @@
 
 			<!-- center btns -->
 			<span
-				v-for="btnNumber in 2*currentPageRange + 1"
+				v-for="btnNumber in 2*pageRange + 1"
 				:key="'center' + getPageNumber(btnNumber, 'center')"
 			>
 				<v-btn
-					v-if="!isInAnySideRange(currentPage) ^ 
-								(isOnLeftBorder(currentPage) || isOnRightBorder(currentPage))"
+					v-if="!isInAnySideRange(page) ^ 
+								(isOnLeftBorder(page) || isOnRightBorder(page))"
 					class="mx-1"
-					:class="{'primary': getPageNumber(btnNumber, 'center') === currentPage}"
+					:class="{'primary': getPageNumber(btnNumber, 'center') === page}"
 					@click="select(getPageNumber(btnNumber, 'center'))"
 				>
 					{{getPageNumber(btnNumber, 'center')}}
@@ -53,7 +53,7 @@
 
 			<!-- right divider -->
 			<span
-				v-if="!isInRightSide(currentPage)"
+				v-if="!isInRightSide(page)"
 				class="mx-1 px-2"			
 			>
 				...
@@ -67,7 +67,7 @@
 				<v-btn
 					v-if="isRightBtnActive(getPageNumber(btnNumber, 'right'))"
 					class="mx-1"
-					:class="{'primary': getPageNumber(btnNumber,'right') === currentPage}"
+					:class="{'primary': getPageNumber(btnNumber,'right') === page}"
 					@click="select(getPageNumber(btnNumber, 'right'))"
 				>
 					{{getPageNumber(btnNumber, 'right')}}
@@ -76,20 +76,20 @@
 		</template>
 		<template v-else>
 			<v-btn
-					v-for="page in normalizedLength"
-					:key="page"
+					v-for="pageNumber in normalizedLength"
+					:key="pageNumber"
 					class="mx-1"
-					:class="{'primary': page === currentPage}"
-					@click="select(page)"
+					:class="{'primary': pageNumber === page}"
+					@click="select(pageNumber)"
 				>
-					{{page}}
+					{{pageNumber}}
 				</v-btn>
 		</template>
 
-		<!-- next page btn -->
+		<!-- next pageNumber btn -->
 		<v-btn
 			class="mx-1"
-			:disabled="currentPage === normalizedLength"
+			:disabled="page === normalizedLength"
 			@click="nextPage()"
 		>
 			<v-icon>
@@ -102,10 +102,6 @@
 <script>
 export default {
 	name: 'AppPagination',
-	
-	data: () => ({
-		currentPage: 1,
-	}),
 
 	props: {
 		length: {
@@ -120,12 +116,13 @@ export default {
 			type: Number,
 			default: 3,
 		},
-		currentPageRange: {
+		pageRange: {
 			type: Number,
 			default: 1,
 		},
 		page: {
 			type: Number,
+			default: 1,
 		},
 	},
 
@@ -136,79 +133,75 @@ export default {
 	},
 
 	methods: {
-		select(page) {
-			this.currentPage = page
+		select(pageNumber) {
+			this.$emit('change', pageNumber)
 		},
 		prevPage() {
-			if (this.currentPage > 1) this.currentPage--
+			if (this.page > 1)
+				this.$emit('change', this.page - 1)
 		},
 		nextPage() {
-			if (this.currentPage < this.normalizedLength) this.currentPage++
+			if (this.page < this.normalizedLength)
+				this.$emit('change', this.page + 1)
 		},
 		/**
-		 * [Returns the page number from button number depending on the side the button is on]
+		 * [Returns the pageNumber number from button number depending on the side the button is on]
 		 * @param  {[Number]} btnNumber [button number]
 		 * @param  {[String]} side [side of the button: "center" or "right"]
-		 * @return {[Number]}      [page number or btn number if the side is invalid]
+		 * @return {[Number]}      [pageNumber number or btn number if the side is invalid]
 		 */
 		getPageNumber(btnNumber, side) {
 			if (side === "right")
 				return this.normalizedLength + btnNumber - this.sideRange
 			
 			if (side === "center") {
-				if (this.isOnLeftBorder(this.currentPage))
-					return this.currentPage + btnNumber - this.currentPageRange
+				if (this.isOnLeftBorder(this.page))
+					return this.page + btnNumber - this.pageRange
 
-				if (this.isOnRightBorder(this.currentPage))
-					return this.currentPage + btnNumber - this.currentPageRange - 2
+				if (this.isOnRightBorder(this.page))
+					return this.page + btnNumber - this.pageRange - 2
 				
-				return this.currentPage + btnNumber - this.currentPageRange - 1
+				return this.page + btnNumber - this.pageRange - 1
 			}
 			
 			return btnNumber
 		},
-		isInLeftSide: function(page) {
-			return page <= this.sideRange
+		isInLeftSide: function(pageNumber) {
+			return pageNumber <= this.sideRange
 		},
-		isInRightSide: function(page) {
-			return this.normalizedLength - page < this.sideRange
+		isInRightSide: function(pageNumber) {
+			return this.normalizedLength - pageNumber < this.sideRange
 		},
-		isInAnySideRange(page) {
-			return this.isInLeftSide(page) || this.isInRightSide(page)
+		isInAnySideRange(pageNumber) {
+			return this.isInLeftSide(pageNumber) || this.isInRightSide(pageNumber)
 		},
-		isOnLeftBorder: function(page) {
-			return page === this.sideRange
+		isOnLeftBorder: function(pageNumber) {
+			return pageNumber === this.sideRange
 		},
-		isOnRightBorder: function(page) {
-			return this.normalizedLength - page === this.sideRange - 1
+		isOnRightBorder: function(pageNumber) {
+			return this.normalizedLength - pageNumber === this.sideRange - 1
 		},
 
-		isLeftBtnActive(page) {
+		isLeftBtnActive(pageNumber) {
 			// the first button will always be displayed
-			return page === 1 || 
-						(this.isInLeftSide(this.currentPage) && 
-						(!this.isOnLeftBorder(page) || this.currentPage != page)) ||
-						(this.isInRightSide(this.currentPage) && !this.isOnRightBorder(this.currentPage))
+			return pageNumber === 1 || 
+						(this.isInLeftSide(this.page) && 
+						(!this.isOnLeftBorder(pageNumber) || this.page != pageNumber)) ||
+						(this.isInRightSide(this.page) && !this.isOnRightBorder(this.page))
 		},
-		isRightBtnActive(page) {
+		isRightBtnActive(pageNumber) {
 			// the last button will always be displayed
-			return page === this.normalizedLength || 
-						(this.isInRightSide(this.currentPage) &&
-						(!this.isOnRightBorder(page) || this.currentPage != page)) ||
-						(this.isInLeftSide(this.currentPage) && !this.isOnLeftBorder(this.currentPage))
+			return pageNumber === this.normalizedLength || 
+						(this.isInRightSide(this.page) &&
+						(!this.isOnRightBorder(pageNumber) || this.page != pageNumber)) ||
+						(this.isInLeftSide(this.page) && !this.isOnLeftBorder(this.page))
 		},
 	},
 
 	watch: {
-		currentPage() {
-			this.$emit('change', this.currentPage)
-    },
-    page() {
-			this.currentPage = this.page
-    },
     length() {
-			this.currentPage = 1
-    }
+			this.$emit('change', 1)
+    },
   },
 }
 </script>

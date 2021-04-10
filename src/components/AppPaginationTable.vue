@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<app-table
-      :page="currentPage"
+      :page="page"
       :dataPerPage="dataPerPage"
       :headers="headers" 
       :keys="keys" 
@@ -12,7 +12,7 @@
 
     <div class="mt-8 d-flex align-center">
       <app-pagination
-        :page="currentPage"
+        :page="page"
         @change="changePage"
         :length="paginationLength"
       />
@@ -43,11 +43,6 @@ export default {
     AppPagination,
 	},
 
-	data: () => ({
-		currentPage: 1,
-		dataPerPage: 5,
-	}),
-
 	props: {
 		items: {
 			type: Array,
@@ -62,6 +57,10 @@ export default {
 			type: Number,
 			default: 1,
 		},
+		dataPerPage: {
+			type: Number,
+			default: 5,
+		},
 		maxDataPerPage: {
 			type: Number,
 			default: 50,
@@ -75,12 +74,12 @@ export default {
       },
       set: function(dataPerPage) {
         if (dataPerPage > this.maxDataPerPage)
-          this.dataPerPage = this.maxDataPerPage
+          this.$emit('changeDataPerPage', this.maxDataPerPage)
 
         else if (dataPerPage < 1)
-          this.dataPerPage = 1  
+          this.$emit('changeDataPerPage', 1)
         
-        else this.dataPerPage = dataPerPage
+        else this.$emit('changeDataPerPage', dataPerPage)
       }
     },
     paginationLength: function() {
@@ -88,18 +87,12 @@ export default {
     },
 	},
 
-	watch: {
-		page() {
-			this.currentPage = this.page
-		},
-	},
-
 	methods: {
 		resetPage() {
-			this.currentPage = 1
+			this.page = 1
 		},
 		changePage(page) {
-			this.currentPage = page
+			this.$emit('changePage', page)
 		},
 		emitItemId(id) {
 			this.$emit('click', id)
